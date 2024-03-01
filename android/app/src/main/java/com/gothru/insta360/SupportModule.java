@@ -7,9 +7,12 @@ import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 
+import com.arashivision.insta360.basemedia.ui.player.capture.CapturePlayerView;
 import com.arashivision.sdkcamera.InstaCameraSDK;
 import com.arashivision.sdkcamera.camera.InstaCameraManager;
 import com.arashivision.sdkcamera.camera.callback.ICameraChangedCallback;
+import com.arashivision.sdkcamera.camera.callback.ICameraOperateCallback;
+import com.arashivision.sdkcamera.camera.callback.ICaptureStatusListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -17,7 +20,9 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SupportModule  extends ReactContextBaseJavaModule implements ICameraChangedCallback {
@@ -25,6 +30,7 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
     private static SupportModule sInstance;
 
     private Camera mCamera;
+    private CapturePlayerView mCapturePlayerView;
 
     public SupportModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -282,6 +288,147 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
         } catch (Exception e) {
             promise.reject("Failed to get current capture type", e);
         }
+    }
+
+    @ReactMethod
+    public void calibrateGyro(Promise promise) {
+        try {
+            InstaCameraManager.getInstance().calibrateGyro(new ICameraOperateCallback() {
+                @Override
+                public void onSuccessful() {
+                    promise.resolve("Gyro calibration successful");
+                }
+
+                @Override
+                public void onFailed() {
+                    promise.reject("Gyro calibration failed");
+                }
+
+                @Override
+                public void onCameraConnectError() {
+                    promise.reject("Camera connection error during gyro calibration");
+                }
+            });
+        } catch (Exception e) {
+            promise.reject("Exception during gyro calibration", e);
+        }
+    }
+
+    @ReactMethod
+    public void formatStorage(Promise promise) {
+        try {
+            InstaCameraManager.getInstance().formatStorage(new ICameraOperateCallback() {
+                @Override
+                public void onSuccessful() {
+                    promise.resolve("Storage formatting successful");
+                }
+
+                @Override
+                public void onFailed() {
+                    promise.reject("Storage formatting failed");
+                }
+
+                @Override
+                public void onCameraConnectError() {
+                    promise.reject("Camera connection error during storage formatting");
+                }
+            });
+        } catch (Exception e) {
+            promise.reject("Exception during storage formatting", e);
+        }
+    }
+
+    @ReactMethod
+    public void deleteFiles(String[] urls, Promise promise) {
+        try {
+            List<String> fileUrls = Arrays.asList(urls);
+            InstaCameraManager.getInstance().deleteFileList(fileUrls, new ICameraOperateCallback() {
+                @Override
+                public void onSuccessful() {
+                    promise.resolve("Files deleted successfully");
+                }
+
+                @Override
+                public void onFailed() {
+                    promise.reject("Failed to delete files");
+                }
+
+                @Override
+                public void onCameraConnectError() {
+                    promise.reject("Camera connection error during file deletion");
+                }
+            });
+        } catch (Exception e) {
+            promise.reject("Exception during file deletion", e);
+        }
+    }
+
+    @ReactMethod
+    public void setCaptureStatusListener(Promise promise) {
+        try {
+            InstaCameraManager.getInstance().setCaptureStatusListener(new ICaptureStatusListener() {
+                @Override
+                public void onCaptureStarting() {
+                    promise.resolve("Capture is starting");
+                }
+
+                @Override
+                public void onCaptureWorking() {
+                    promise.resolve("Capture is ongoing");
+                }
+
+                @Override
+                public void onCaptureStopping() {
+                    promise.resolve("Capture is stopping");
+                }
+
+                @Override
+                public void onCaptureFinish(String[] filePaths) {
+                    promise.resolve("Capture finished");
+                }
+
+                @Override
+                public void onCaptureCountChanged(int captureCount) {
+                    promise.resolve("Capture count changed: " + captureCount);
+                }
+
+                @Override
+                public void onCaptureTimeChanged(long captureTime) {
+                    promise.resolve("Capture time changed: " + captureTime);
+                }
+            });
+        } catch (Exception e) {
+            promise.reject("Error setting capture status listener", e);
+        }
+    }
+    @ReactMethod
+    public void onCameraStatusChanged(boolean enabled) {
+        System.out.println("Camera status changed. Enabled: " + enabled);
+    }
+
+    @ReactMethod
+    public void onCameraConnectError(int errorCode) {
+        System.out.println("Camera connection failed. Error code: " + errorCode);
+    }
+
+    @ReactMethod
+    public void onCameraSDCardStateChanged(boolean enabled) {
+        System.out.println("SD card state changed. Enabled: " + enabled);
+    }
+
+    @ReactMethod
+    public void onCameraStorageChanged(long freeSpace, long totalSpace) {
+        System.out.println("Camera storage changed. Free space: " + freeSpace + " Total space: " + totalSpace);
+    }
+
+    @ReactMethod
+    public void onCameraBatteryLow() {
+        System.out.println("Low battery notification.");
+    }
+
+    @ReactMethod
+    public void onCameraBatteryUpdate(int batteryLevel, boolean isCharging) {
+        System.out.println("Battery level: " + batteryLevel + " Charging: " + isCharging);
     }
 
 }

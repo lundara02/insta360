@@ -103,6 +103,37 @@ export default function App() {
     }
   }
 
+  const calibrateGyro = async () => {
+    try {
+      const response = await SupportModule.calibrateGyro();
+      console.log(response);
+      Alert.alert(response);
+    } catch (e) {
+      console.warn("Error calibrating gyro:", e);
+      Alert.alert('Error', 'Failed to calibrate gyro');
+    }
+  }
+
+  const formatStorage = async () => {
+    try {
+      const response = await SupportModule.formatStorage();
+      console.log(response);
+      Alert.alert(response);
+    } catch (e) {
+      console.warn("Error formatting storage:", e);
+      Alert.alert('Error', 'Failed to format storage');
+    }
+  }
+
+// Camera status
+const callStatusCamera = () => {
+    SupportModule.onCameraStatusChanged(true);
+    SupportModule.onCameraConnectError(123);
+    SupportModule.onCameraSDCardStateChanged(true);
+    // SupportModule.onCameraStorageChanged(1024, 2048);
+    SupportModule.onCameraBatteryLow();
+    SupportModule.onCameraBatteryUpdate(50, false);
+  }
 return (
     <View style={styles.container}>
       <Text>Go Thru</Text>
@@ -114,6 +145,16 @@ return (
       </TouchableOpacity>
 	  <TouchableOpacity style={styles.button} onPress={openCameraUSB}>
         <Text>Open Camera USB</Text>
+      </TouchableOpacity>
+	  <TouchableOpacity style={styles.button} onPress={calibrateGyro}>
+        <Text>Calibrate Gyro</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={formatStorage}>
+        <Text>Format Storage</Text>
+      </TouchableOpacity>
+	  <TouchableOpacity style={styles.button} onPress={callStatusCamera}>
+        <Text>Camera Status</Text>
       </TouchableOpacity>
       <StatusBar style="auto" />
     </View>
