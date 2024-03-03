@@ -48,15 +48,14 @@ export default function App() {
     }
   }
 
-  const startCapture = async () => {
-    try {
-      const result = await SupportModule.startCapture(); //
-      Alert.alert('Capture Started', result); 
-    } catch (error) {
-      console.error(error); 
-      Alert.alert('Error', 'Failed to start capture');
-    }
-  }
+  const startNormalCapture = (captureRaw) => {
+    SupportModule.startNormalCapture(captureRaw).then(result => {
+      console.log(result);
+      Alert.alert(result); 
+    }).catch(e => {
+      console.warn("Error Capture", e);
+    });
+  };
 
   const getCameraConnectedType = async () => {
     try {
@@ -146,10 +145,9 @@ return (
 	  <TouchableOpacity style={styles.button} onPress={openCameraUSB}>
         <Text>Open Camera USB</Text>
       </TouchableOpacity>
-	  <TouchableOpacity style={styles.button} onPress={calibrateGyro}>
-        <Text>Calibrate Gyro</Text>
-      </TouchableOpacity>
-
+      <TouchableOpacity style={styles.button} onPress={() => startNormalCapture(true)}>
+  <Text>Start Normal Capture</Text>
+</TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={formatStorage}>
         <Text>Format Storage</Text>
       </TouchableOpacity>

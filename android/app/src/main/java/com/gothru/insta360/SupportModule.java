@@ -172,6 +172,7 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
     @ReactMethod
     public void startNormalCapture(boolean captureRaw, Promise promise) {
         try {
+            // Ensure that captureRaw is correctly used here
             InstaCameraManager.getInstance().startNormalCapture(captureRaw);
             promise.resolve("Normal capture started");
         } catch (Exception e) {
