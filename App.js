@@ -50,10 +50,10 @@ export default function App() {
 
   const startCapture = async () => {
     try {
-      const result = await SupportModule.startCapture(); //
-      Alert.alert('Capture Started', result); 
+      const result = await SupportModule.startNormalCapture(false); 
+      Alert.alert('Capture Started', result);
     } catch (error) {
-      console.error(error); 
+      console.error(error);
       Alert.alert('Error', 'Failed to start capture');
     }
   }
@@ -150,8 +150,8 @@ return (
         <Text>Calibrate Gyro</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={formatStorage}>
-        <Text>Format Storage</Text>
+      <TouchableOpacity style={styles.button} onPress={startCapture}>
+        <Text>Start Capture</Text>
       </TouchableOpacity>
 	  <TouchableOpacity style={styles.button} onPress={callStatusCamera}>
         <Text>Camera Status</Text>
