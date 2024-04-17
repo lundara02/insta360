@@ -20,20 +20,15 @@ export default function App() {
 	const initSdkCamera = async () => {
 		try {
 			const response = await SupportModule.initSdk();
-			console.log(response);
-		} catch (e) {
-			console.warn("Error initializing SDK:", e);
-		}
+		} catch (e) { }
 	}
 
 	const startCameraPreview = async () => {
 		try {
 			const response = await SupportModule.startCameraPreview(surfaceViewId, {});
 			Alert.alert('Success', 'Camera preview started: ' + response);
-			console.log("Camera preview started:", response);
 		} catch (error) {
 			Alert.alert('Error', 'Error starting camera preview: ' + error);
-			console.error("Error starting camera preview:", error);
 		}
 	}
 
@@ -44,7 +39,6 @@ export default function App() {
 			const response = await SupportModule.openCameraWifi();
 			checkCameraConnectionInterval()
 		} catch (error) {
-			console.error(error);
 			Alert.alert('Error', 'Failed to open camera via WiFi');
 		}
 	}
@@ -62,7 +56,6 @@ export default function App() {
 		}, 12000);
 		const interval = setInterval(async () => {
 			const check = await SupportModule.isCameraConnected();
-			console.log("interval check camera connection", check)
 			if (check === true) {
 				clearTimeout(timeout);
 				setIntervalActive(false);
@@ -78,11 +71,8 @@ export default function App() {
 	const openCameraUSB = async () => {
 		try {
 			const response = await SupportModule.openCameraUSB();
-			console.log(response);
 			Alert.alert(response);
-		} catch (e) {
-			console.warn("Error opening camera via USB:", e);
-		}
+		} catch (e) { }
 	}
 
 	const startCapture = async () => {
@@ -90,7 +80,6 @@ export default function App() {
 			const result = await SupportModule.startNormalCapture(true);
 			Alert.alert('Capture Started', result);
 		} catch (error) {
-			console.error(error);
 			Alert.alert('Error', 'Failed to start capture');
 		}
 	}
@@ -100,7 +89,6 @@ export default function App() {
 			const result = await SupportModule.startHDRCapture(true);
 			Alert.alert('Capture HDR Started', result);
 		} catch (error) {
-			console.error(error);
 			Alert.alert('Error', 'Failed to start capture');
 		}
 	}
@@ -110,54 +98,38 @@ export default function App() {
 			const type = await SupportModule.getCameraConnectedType();
 			let cameraType = type == 2 ? "WIFI" : "USB";
 			alert("Camera connected type: " + cameraType);
-		} catch (e) {
-			console.warn("Error getting camera connected type:", e);
-		}
+		} catch (e) { }
 	}
 
 	const isCameraConnected = async () => {
 		try {
 			const isConnected = await SupportModule.isCameraConnected();
-			console.log("Is camera connected:", isConnected);
-		} catch (e) {
-			console.warn("Error checking camera connection:", e);
-		}
+		} catch (e) { }
 	}
 
 	const closeCamera = async () => {
 		try {
 			const response = await SupportModule.closeCamera();
-			console.log(response);
-		} catch (e) {
-			console.warn("Error closing camera:", e);
-		}
+		} catch (e) { }
 	}
 
 	const registerCameraChangedCallback = async () => {
 		try {
 			const response = await SupportModule.registerCameraChangedCallback();
-			console.log(response);
-		} catch (e) {
-			console.warn("Error registering camera changed callback:", e);
-		}
+		} catch (e) { }
 	}
 
 	const unregisterCameraChangedCallback = async () => {
 		try {
 			const response = await SupportModule.unregisterCameraChangedCallback();
-			console.log(response);
-		} catch (e) {
-			console.warn("Error unregistering camera changed callback:", e);
-		}
+		} catch (e) { }
 	}
 
 	const calibrateGyro = async () => {
 		try {
 			const response = await SupportModule.calibrateGyro();
-			console.log(response);
 			Alert.alert(response);
 		} catch (e) {
-			console.warn("Error calibrating gyro:", e);
 			Alert.alert('Error', 'Failed to calibrate gyro');
 		}
 	}
@@ -165,10 +137,8 @@ export default function App() {
 	const formatStorage = async () => {
 		try {
 			const response = await SupportModule.formatStorage();
-			console.log(response);
 			Alert.alert(response);
 		} catch (e) {
-			console.warn("Error formatting storage:", e);
 			Alert.alert('Error', 'Failed to format storage');
 		}
 	}
@@ -187,7 +157,6 @@ export default function App() {
 		try {
 			SupportModule.getPhotos();
 			setTimeout(() => {
-				console.log("running get photosadskjaskdasd")
 				SupportModule.setData();
 			}, 5000)
 		} catch (e) {
