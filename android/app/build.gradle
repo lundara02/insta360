@@ -145,7 +145,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    implementation 'com.arashivision.sdk:sdkcamera:1.5.3'
+    implementation 'com.arashivision.sdk:sdkcamera:1.5.6'
     implementation 'com.arashivision.sdk:sdkmedia:1.5.6'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
 

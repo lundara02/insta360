@@ -1,73 +1,200 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, NativeModules } from 'react-native';
-const { TestModule } = NativeModules;
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, NativeModules, Alert } from 'react-native';
+import LoadingScreen from './src/components/loading-screen/loading-screen';
 
+const { SupportModule } = NativeModules;
 
 export default function App() {
+	const [surfaceViewId, setSurfaceViewId] = useState(null);
+
+	const [intervalActive, setIntervalActive] = useState(false);
+	const [isConnected, setIsConnected] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const [loadingCaption, setLoadingCaption] = useState('');
 
 	useEffect(() => {
-	}, [])
+		initSdkCamera();
+	}, []);
 
-	const initCamera = async () => {
+	const initSdkCamera = async () => {
 		try {
-			let s = await TestModule.initInsta360();
-			console.log(s, "hasil java init")
-		} catch (e) {
-			console.warn(e)
-		}
-
+			const response = await SupportModule.initSdk();
+		} catch (e) { }
 	}
 
-	const connectCamera = async (type) => {
+	const startCameraPreview = async () => {
 		try {
-			if (type == "wifi") {
-				TestModule.connectByWifi();
-			} else {
-				TestModule.connectByUSB();
-			}
-		} catch (e) {
-			console.warn(e)
+			const response = await SupportModule.startCameraPreview(surfaceViewId, {});
+			Alert.alert('Success', 'Camera preview started: ' + response);
+		} catch (error) {
+			Alert.alert('Error', 'Error starting camera preview: ' + error);
 		}
+	}
 
+	const openCameraWifi = async () => {
+		try {
+			setIsLoading(true);
+			setLoadingCaption('Connecting to camera...');
+			const response = await SupportModule.openCameraWifi();
+			checkCameraConnectionInterval()
+		} catch (error) {
+			Alert.alert('Error', 'Failed to open camera via WiFi');
+		}
+	}
+
+	const checkCameraConnectionInterval = () => {
+		setIntervalActive(true);
+		const timeout = setTimeout(() => {
+			if (!intervalActive) {
+				Alert.alert("Error", "Failed to connect camera: timeout")
+
+				setIsLoading(false);
+				setLoadingCaption('');
+				clearInterval(interval);
+			}
+		}, 12000);
+		const interval = setInterval(async () => {
+			const check = await SupportModule.isCameraConnected();
+			if (check === true) {
+				clearTimeout(timeout);
+				setIntervalActive(false);
+				setIsConnected(true);
+				setIsLoading(false);
+				setLoadingCaption('');
+				clearInterval(interval);
+				Alert.alert("Success", "Camera connected")
+			}
+		}, 1000);
+	}
+
+	const openCameraUSB = async () => {
+		try {
+			const response = await SupportModule.openCameraUSB();
+			Alert.alert(response);
+		} catch (e) { }
+	}
+
+	const startCapture = async () => {
+		try {
+			const result = await SupportModule.startNormalCapture(true);
+			Alert.alert('Capture Started', result);
+		} catch (error) {
+			Alert.alert('Error', 'Failed to start capture');
+		}
+	}
+
+	const startCaptureHDR = async () => {
+		try {
+			const result = await SupportModule.startHDRCapture(true);
+			Alert.alert('Capture HDR Started', result);
+		} catch (error) {
+			Alert.alert('Error', 'Failed to start capture');
+		}
+	}
+
+	const getCameraConnectedType = async () => {
+		try {
+			const type = await SupportModule.getCameraConnectedType();
+			let cameraType = type == 2 ? "WIFI" : "USB";
+			alert("Camera connected type: " + cameraType);
+		} catch (e) { }
+	}
+
+	const isCameraConnected = async () => {
+		try {
+			const isConnected = await SupportModule.isCameraConnected();
+		} catch (e) { }
+	}
+
+	const closeCamera = async () => {
+		try {
+			const response = await SupportModule.closeCamera();
+		} catch (e) { }
+	}
+
+	const registerCameraChangedCallback = async () => {
+		try {
+			const response = await SupportModule.registerCameraChangedCallback();
+		} catch (e) { }
+	}
+
+	const unregisterCameraChangedCallback = async () => {
+		try {
+			const response = await SupportModule.unregisterCameraChangedCallback();
+		} catch (e) { }
+	}
+
+	const calibrateGyro = async () => {
+		try {
+			const response = await SupportModule.calibrateGyro();
+			Alert.alert(response);
+		} catch (e) {
+			Alert.alert('Error', 'Failed to calibrate gyro');
+		}
+	}
+
+	const formatStorage = async () => {
+		try {
+			const response = await SupportModule.formatStorage();
+			Alert.alert(response);
+		} catch (e) {
+			Alert.alert('Error', 'Failed to format storage');
+		}
+	}
+
+	// Camera status
+	const callStatusCamera = () => {
+		SupportModule.onCameraStatusChanged(true);
+		SupportModule.onCameraConnectError(123);
+		SupportModule.onCameraSDCardStateChanged(true);
+		// SupportModule.onCameraStorageChanged(1024, 2048);
+		SupportModule.onCameraBatteryLow();
+		SupportModule.onCameraBatteryUpdate(50, false);
+	}
+
+	const getPhotos = () => {
+		try {
+			SupportModule.getPhotos();
+			setTimeout(() => {
+				SupportModule.setData();
+			}, 5000)
+		} catch (e) {
+
+		}
 	}
 
 	return (
 		<View style={styles.container}>
-			<Text>Insta 360 Connect</Text>
-			<View style={{ gap: 10, flexDirection: "row", marginTop: 20 }}>
-				<TouchableOpacity style={{ padding: 20, backgroundColor: "gray" }} onPress={() => initCamera()}>
-					<Text>INIT</Text>
-				</TouchableOpacity>
-				<TouchableOpacity style={{ padding: 20, backgroundColor: "gray" }} onPress={() => connectCamera("wifi")}>
-					<Text>WIFI</Text>
-				</TouchableOpacity>
-				<TouchableOpacity style={{ padding: 20, backgroundColor: "gray" }} onPress={() => connectCamera("usb")}>
-					<Text>USB</Text>
-				</TouchableOpacity>
-			</View>
-			{/* <TouchableOpacity style={{ padding: 20, backgroundColor: "gray" }} onPress={async () => {
-				try {
-					// let s = TestModule.getValue();
-					// console.log(s, "hasil java")
-					// TestModule.createTestEvent('testName', 'testLocation');
-					// TestModule.createAlert("Lundara hellow")
+			<LoadingScreen show={isLoading} caption={loadingCaption} />
+			<Text>Please connect to camera WIFI first</Text>
+			<TouchableOpacity style={styles.button} onPress={openCameraWifi}>
+				<Text>Connect using Wifi</Text>
+			</TouchableOpacity>
 
-					let g = TestModule.getStringValue("Speed");
-					console.log("ggg", g)
-					// TestModule.getStringValue("Power").then((result) => {
-					// 	console.log("OK", result);
-					// }).catch((error) => {
-					// 	console.error(error);
-					// });
-				} catch (e) {
-					console.warn(e)
-				}
-			}}>
-				<Text>Test</Text>
+			<TouchableOpacity style={styles.button} onPress={getCameraConnectedType}>
+				<Text>Check connected type</Text>
+			</TouchableOpacity>
+
+			<View style={{ marginTop: 20, height: 2, width: "100%", backgroundColor: "#ededed" }}></View>
+			<TouchableOpacity
+				style={[styles.button, {
+					backgroundColor: isConnected ? 'lightblue' : '#ededed'
+				}]}
+				onPress={startCaptureHDR}
+			>
+				<Text>Capture</Text>
+			</TouchableOpacity>
+			{/* <TouchableOpacity
+				style={[styles.button, {
+					backgroundColor: 'lightblue'
+				}]}
+				onPress={getPhotos}
+			>
+				<Text>List Photos</Text>
 			</TouchableOpacity> */}
 			<StatusBar style="auto" />
-		</View >
+		</View>
 	);
 }
 
@@ -77,5 +204,11 @@ const styles = StyleSheet.create({
 		backgroundColor: '#fff',
 		alignItems: 'center',
 		justifyContent: 'center',
+	},
+	button: {
+		backgroundColor: 'lightblue',
+		marginTop: 20,
+		padding: 10,
+		borderRadius: 5,
 	},
 });
