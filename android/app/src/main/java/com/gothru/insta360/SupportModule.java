@@ -1,18 +1,30 @@
 package com.gothru.insta360;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.util.Log;
 import android.view.SurfaceView;
 
+import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
+import com.arashivision.insta360.basecamera.camera.BaseCamera;
+import com.arashivision.insta360.basecamera.camera.CameraManager;
 import com.arashivision.insta360.basemedia.ui.player.capture.CapturePlayerView;
+import com.arashivision.insta360.basecamera.camera.BaseCamera.ConnectType;
 import com.arashivision.sdkcamera.InstaCameraSDK;
 import com.arashivision.sdkcamera.camera.InstaCameraManager;
 import com.arashivision.sdkcamera.camera.callback.ICameraChangedCallback;
 import com.arashivision.sdkcamera.camera.callback.ICameraOperateCallback;
 import com.arashivision.sdkcamera.camera.callback.ICaptureStatusListener;
+import com.arashivision.sdkmedia.InstaMediaSDK;
+import com.arashivision.sdkmedia.work.WorkUtils;
+import com.arashivision.sdkmedia.work.WorkWrapper;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -20,21 +32,46 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.core.content.ContextCompat;
+
 public class SupportModule  extends ReactContextBaseJavaModule implements ICameraChangedCallback {
     private final ReactApplicationContext reactContext;
     private static SupportModule sInstance;
-
+    private List<WorkWrapper> allList = new ArrayList<>();
+    private List<WorkWrapper> shownList = new ArrayList<>();
     private Camera mCamera;
     private CapturePlayerView mCapturePlayerView;
+    private final Context mContext;
+    public interface CameraCallback {
+        void onCameraOpened(String successMessage);
+        void onCameraFailed(String errorMessage);
+    }
+
+    @ReactMethod
+    public void setData(List<WorkWrapper> workList) {
+        allList.clear();
+        allList.addAll(workList);
+        showAll();
+    }
+
+    private int showAll() {
+        shownList.clear();
+        shownList.addAll(allList);
+//        return shownList.size();
+        return shownList == null ? 0 : shownList.size();
+    }
+
 
     public SupportModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        mContext = reactContext.getApplicationContext();
         sInstance = this;
     }
 
@@ -55,9 +92,19 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
 
     @ReactMethod
     public void initSdk(Promise promise) {
+//        try {
+//            Application application = (Application) getReactApplicationContext().getApplicationContext();
+//            InstaCameraSDK.init(application);
+//            InstaMediaSDK.init(application);
+//            promise.resolve("SDK initialization successful");
+//        } catch (Exception e) {
+//            promise.reject("SDK initialization failed", e);
+//        }
+
         try {
-            Application application = (Application) getReactApplicationContext().getApplicationContext();
+            Application application = (Application) mContext;
             InstaCameraSDK.init(application);
+            InstaMediaSDK.init(application);
             promise.resolve("SDK initialization successful");
         } catch (Exception e) {
             promise.reject("SDK initialization failed", e);
@@ -98,14 +145,15 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
             mCamera = null;
         }
     }
+
     @ReactMethod
-    public void openCameraWifi(Promise promise) {
-        try {
-            InstaCameraManager.getInstance().openCamera(InstaCameraManager.CONNECT_TYPE_WIFI);
-            promise.resolve("Camera opened via WiFi");
-        } catch (Exception e) {
-            promise.reject("Failed to open camera via WiFi", e);
-        }
+    public void openCamera(){
+        CameraManager.getInstance().tryOpenCamera(ConnectType.WIFI);
+    }
+
+    @ReactMethod
+    public void openCameraWifi() {
+        InstaCameraManager.getInstance().openCamera(InstaCameraManager.CONNECT_TYPE_WIFI);
     }
 
     @ReactMethod
@@ -167,6 +215,17 @@ public class SupportModule  extends ReactContextBaseJavaModule implements ICamer
         } catch (Exception e) {
             promise.reject("Failed to unregister callback", e);
         }
+    }
+
+    @ReactMethod
+    public void getPhotos() {
+
+        List<WorkWrapper> list = WorkUtils.getAllCameraWorks(
+                InstaCameraManager.getInstance().getCameraHttpPrefix(),
+                InstaCameraManager.getInstance().getCameraInfoMap(),
+                InstaCameraManager.getInstance().getAllUrlList(),
+                InstaCameraManager.getInstance().getRawUrlList()
+        );
     }
 
     @ReactMethod

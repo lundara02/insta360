@@ -59,7 +59,7 @@ export default function App() {
 				setLoadingCaption('');
 				clearInterval(interval);
 			}
-		}, 6000);
+		}, 12000);
 		const interval = setInterval(async () => {
 			const check = await SupportModule.isCameraConnected();
 			console.log("interval check camera connection", check)
@@ -87,8 +87,18 @@ export default function App() {
 
 	const startCapture = async () => {
 		try {
-			const result = await SupportModule.startNormalCapture(false);
+			const result = await SupportModule.startNormalCapture(true);
 			Alert.alert('Capture Started', result);
+		} catch (error) {
+			console.error(error);
+			Alert.alert('Error', 'Failed to start capture');
+		}
+	}
+
+	const startCaptureHDR = async () => {
+		try {
+			const result = await SupportModule.startHDRCapture(true);
+			Alert.alert('Capture HDR Started', result);
 		} catch (error) {
 			console.error(error);
 			Alert.alert('Error', 'Failed to start capture');
@@ -98,7 +108,8 @@ export default function App() {
 	const getCameraConnectedType = async () => {
 		try {
 			const type = await SupportModule.getCameraConnectedType();
-			console.log("Camera connected type:", type);
+			let cameraType = type == 2 ? "WIFI" : "USB";
+			alert("Camera connected type: " + cameraType);
 		} catch (e) {
 			console.warn("Error getting camera connected type:", e);
 		}
@@ -172,26 +183,47 @@ export default function App() {
 		SupportModule.onCameraBatteryUpdate(50, false);
 	}
 
+	const getPhotos = () => {
+		try {
+			SupportModule.getPhotos();
+			setTimeout(() => {
+				console.log("running get photosadskjaskdasd")
+				SupportModule.setData();
+			}, 5000)
+		} catch (e) {
+
+		}
+	}
+
 	return (
 		<View style={styles.container}>
 			<LoadingScreen show={isLoading} caption={loadingCaption} />
-			<Text>Please connect to camera first</Text>
+			<Text>Please connect to camera WIFI first</Text>
 			<TouchableOpacity style={styles.button} onPress={openCameraWifi}>
 				<Text>Connect using Wifi</Text>
 			</TouchableOpacity>
 
-			<View style={{ marginTop: 20, height: 2, width: "100%", backgroundColor: "#ededed" }}></View>
+			<TouchableOpacity style={styles.button} onPress={getCameraConnectedType}>
+				<Text>Check connected type</Text>
+			</TouchableOpacity>
 
-			<Text style={{ marginTop: 20 }}>Please connect to camera first</Text>
+			<View style={{ marginTop: 20, height: 2, width: "100%", backgroundColor: "#ededed" }}></View>
 			<TouchableOpacity
 				style={[styles.button, {
-					backgroundColor: isConnected ? 'lightblue' : '#ededed',
+					backgroundColor: isConnected ? 'lightblue' : '#ededed'
 				}]}
-				onPress={startCameraPreview}
-				disabled={!isConnected}
+				onPress={startCaptureHDR}
 			>
-				<Text>Start Camera Preview</Text>
+				<Text>Capture</Text>
 			</TouchableOpacity>
+			{/* <TouchableOpacity
+				style={[styles.button, {
+					backgroundColor: 'lightblue'
+				}]}
+				onPress={getPhotos}
+			>
+				<Text>List Photos</Text>
+			</TouchableOpacity> */}
 			<StatusBar style="auto" />
 		</View>
 	);
